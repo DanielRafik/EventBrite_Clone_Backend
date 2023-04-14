@@ -44,9 +44,10 @@ urlpatterns = [
     path('user/login/',CreateTokenView.as_view(), name='token'),
     path('user/emailcheck/<str:email>/',EmailCheckView.as_view(), name='email-check'),
     path('user/reset-password/', CustomPasswordResetView.as_view(), name='password_reset'),
-    path('user/reset-password/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    path('user/reset-password/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('user/reset-password/complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('user/reset-password/done/', CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('user/reset-password/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('user/reset-password/complete/', CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
+
 
     # path('user/reset-password/', auth_views.PasswordResetView.as_view(), name='password-reset'),
     # path('user/reset-password/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password-reset-confirm'),

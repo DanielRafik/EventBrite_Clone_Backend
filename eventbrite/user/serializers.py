@@ -24,6 +24,7 @@ import string
 import random
 from django.http import HttpResponse
 import requests
+from django.db import IntegrityError
 
 class userSerializer(serializers.ModelSerializer):
     """
@@ -45,14 +46,11 @@ class userSerializer(serializers.ModelSerializer):
         except ValidationError as e:
             raise serializers.ValidationError({'password': e.messages})
         username = string.ascii_lowercase
-        user = User.objects.create_user(**validated_data, password=password,email=email,
-                                       username=''.join(random.choice(username) for i in range(10)) )
-        # if user:
-        #     raise serializers.ValidationError({'email': 'User with this email already exists.'})
-        # else:
-        #     user = User.objects.create_user(**validated_data, password=password, email=email,
-        #                                         username=''.join(random.choice(username) for i in range(10)))
-        # user.save()
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError("A user with this email address already exists.")
+        
+        user = User.objects.create_user(**validated_data, password=password, email=email, username=''.join(random.choice(username) for i in range(10)))
+        
         """
         This part is to send a welcoming email to the new user
         """
@@ -60,7 +58,7 @@ class userSerializer(serializers.ModelSerializer):
         message = "Hello " + user.first_name + "!! \n" + "Welcome to Evenbrite !! \nThank you for visiting our website\n. We have also sent you a confirmation email, please confirm your email address. \n\nThanking You\nEventbrite Team"        
         from_email = EMAIL_HOST_USER
         to_list = [user.email]
-        send_mail(subject, message, from_email, to_list, fail_silently=False)
+        # send_mail(subject, message, from_email, to_list, fail_silently=False)
         return user
 
 

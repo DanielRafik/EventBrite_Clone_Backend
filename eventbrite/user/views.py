@@ -163,6 +163,13 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 from django.http import HttpResponseRedirect
+from datetime import datetime, timedelta
+from django.utils import timezone
+from django.contrib.auth.views import (
+    PasswordResetDoneView,
+    PasswordResetConfirmView,
+    PasswordResetCompleteView,
+)
 
 class CustomPasswordResetView(PasswordResetView):
     success_url = reverse_lazy('password_reset_done')
@@ -175,11 +182,16 @@ class CustomPasswordResetView(PasswordResetView):
             except User.DoesNotExist:
                 user = None
             if user is not None:
-                # Generate a one-time use token for the user's email address
+                '''
+                    Generate a one-time use token for the user's email address
+                '''
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
-                token = default_token_generator.make_token(user)
-
-                # Construct the reset URL for the user
+                expiration_time = timezone.now() + timezone.timedelta(minutes=2)
+                token = default_token_generator.make_token(user) + str(int(expiration_time.timestamp()))
+            
+                '''
+                    Construct the reset URL for the user
+                '''
                 reset_url = request.build_absolute_uri(reverse_lazy('password_reset_confirm', kwargs={
                     'uidb64': uid,
                     'token': token,
@@ -189,7 +201,7 @@ class CustomPasswordResetView(PasswordResetView):
                 send_mail(
                     'Password reset for your My App account',
                     'Please click the following link to reset your password: ' + reset_url,
-                    'noreply@myapp.com',
+                    EMAIL_HOST_USER,
                     [user.email],
                     fail_silently=False,
                 )
@@ -197,3 +209,12 @@ class CustomPasswordResetView(PasswordResetView):
         # Redirect to the password reset done page
         return HttpResponseRedirect(self.success_url)
 
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    template_name = None
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = None
+    success_url = reverse_lazy('password_reset_complete')
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = None
